@@ -51,7 +51,7 @@
 </head>
 <body>
 
-    <h1>โปรแกรมคำนวณดัชนีร่างกายอัจฉริยะ</h1>
+    <h1>โปรแกรมคำนวณดัชนีร่างกาย</h1>
 
     <div class="container">
         <div class="card">
@@ -169,7 +169,7 @@
                 alert("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วนครับ");
                 return;
             }*/
-             if (!w || !h || !age || (gender === 'female' && !hip)) {
+             if (!w || !h || !age ) {
                 alert("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วนครับ");
                 return;
             }
@@ -199,22 +199,36 @@
             const tdee = bmr * activity;
             document.getElementById('res-tdee').innerHTML = `${Math.round(tdee)} <span style="font-size:14px">kcal</span>`;
 
-            // 4. Body Fat % (สูตร US Navy วิธีการแปลง Log)
-            let bodyFat = 0;
-            if (gender === 'male') {
-                bodyFat = 86.010 * Math.log10(waist - neck) - 70.041 * Math.log10(h) + 36.76;
-            } else {
-                bodyFat = 163.205 * Math.log10(waist + hip - neck) - 97.684 * Math.log10(h) - 78.387;
-            }
-            
-            if(bodyFat < 2) bodyFat = 2; // ป้องกันค่าติดลบกรณีสัดส่วนผิดเพี้ยน
-            document.getElementById('res-fatpct').innerText = bodyFat.toFixed(1) + " %";
+            // --- ส่วนที่ปรับปรุง: เช็กเงื่อนไขการคำนวณมวลไขมันและกล้ามเนื้อ ---
+            // เช็กว่ากรอกข้อมูลสัดส่วนครบตามเงื่อนไขเพศไหม ถ้าไม่ครบกำหนดให้แสดงเป็น "-"
+            const hasMaleProportions = (gender === 'male' && waist && neck);
+            const hasFemaleProportions = (gender === 'female' && waist && neck && hip);
 
-            // 5. Fat Mass & Lean Body Mass
-            const fatMass = w * (bodyFat / 100);
-            const lbm = w - fatMass;
-            document.getElementById('res-fatmass').innerHTML = `${fatMass.toFixed(1)} <span style="font-size:14px">kg</span>`;
-            document.getElementById('res-lbm').innerHTML = `${lbm.toFixed(1)} <span style="font-size:14px">kg</span>`;
+            if (hasMaleProportions || hasFemaleProportions) {
+                // 4. Body Fat % (สูตร US Navy วิธีการแปลง Log)
+                let bodyFat = 0;
+                if (gender === 'male') {
+                    bodyFat = 86.010 * Math.log10(waist - neck) - 70.041 * Math.log10(h) + 36.76;
+                } else {
+                    bodyFat = 163.205 * Math.log10(waist + hip - neck) - 97.684 * Math.log10(h) - 78.387;
+                }
+                
+                if(bodyFat < 2) bodyFat = 2; // ป้องกันค่าติดลบกรณีสัดส่วนผิดเพี้ยน
+                
+                // 5. Fat Mass & Lean Body Mass
+                const fatMass = w * (bodyFat / 100);
+                const lbm = w - fatMass;
+
+                // แสดงผลลัพธ์ที่คำนวณได้
+                document.getElementById('res-fatpct').innerText = bodyFat.toFixed(1) + " %";
+                document.getElementById('res-fatmass').innerHTML = `${fatMass.toFixed(1)} <span style="font-size:14px">kg</span>`;
+                document.getElementById('res-lbm').innerHTML = `${lbm.toFixed(1)} <span style="font-size:14px">kg</span>`;
+            } else {
+                // ข้อมูลสัดส่วนไม่ครบ ให้ใส่เครื่องหมาย "-" ตามที่ต้องการ
+                document.getElementById('res-fatpct').innerText = "-";
+                document.getElementById('res-fatmass').innerHTML = `- <span style="font-size:14px">kg</span>`;
+                document.getElementById('res-lbm').innerHTML = `- <span style="font-size:14px">kg</span>`;
+            }
 
             // 6. Ideal Body Weight (สูตร Devine Formula)
             let idealWeight = 0;
@@ -226,7 +240,6 @@
                     idealWeight = 45.5 + (2.3 * inchesOver5Feet);
                 }
             } else {
-                // กรณีส่วนสูงไม่เกิน 5 ฟุต ใช้เกณฑ์ประเมินส่วนสูงลบด้วย 100 หรือ 110
                 idealWeight = gender === 'male' ? h - 100 : h - 110;
             }
             document.getElementById('res-ideal').innerHTML = `${idealWeight.toFixed(1)} <span style="font-size:14px">kg</span>`;

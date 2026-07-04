@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรแกรมคำนวณดัชนีร่างกายและพลังงาน (All-in-One)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
+        body { background-color: #f4f6f9; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        h1 { color: #124e50; margin-bottom: 30px; text-align: center; }
+        
+        .container { display: flex; gap: 25px; width: 100%; max-width: 1100px; align-items: stretch; }
+        .card { background: white; border-radius: 20px; padding: 30px; flex: 1; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); }
+        .card-title { font-size: 22px; font-weight: 700; color: #124e50; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        
+        /* สไตล์ฟอร์มข้อมูล */
+        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .input-group { margin-bottom: 15px; }
+        .full-width { grid-column: span 2; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; }
+        
+        /* ปุ่มเลือกเพศ */
+        .gender-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .gender-btn { flex: 1; padding: 10px; border: 2px solid #e2e8f0; background: #edf2f7; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .gender-btn.active-male { background: #e6fffa; border-color: #319795; color: #234e52; }
+        .gender-btn.active-female { background: #fff5f5; border-color: #e53e3e; color: #652b2b; }
+        
+        /* ช่องกรอกข้อมูลธีม Teal */
+        input, select { width: 100%; padding: 10px 15px; background: #1a5254; border: none; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; outline: none; }
+        input::placeholder { color: #a0aec0; }
+        
+        /* ซ่อนส่วนวัดสัดส่วนผู้หญิงตอนเลือกผู้ชาย */
+        .female-only { display: none; }
+        
+        /* แผงแสดงผลลัพธ์ฝั่งขวา */
+        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .result-box { background: #f8fafc; border-left: 5px solid #2c7a7b; padding: 15px; border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        .result-box.highlight { background: #fffaf0; border-left-color: #dd6b20; }
+        .res-label { font-size: 14px; color: #718096; font-weight: 600; }
+        .res-val { font-size: 24px; font-weight: 700; color: #2d3748; margin-top: 5px; }
+        
+        .footer-action { width: 100%; max-width: 1100px; display: flex; justify-content: flex-end; margin-top: 20px; gap: 10px; }
+        .btn { padding: 12px 25px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-calc { background: #1a5254; color: white; }
+        .btn-reset { background: #e2e8f0; color: #4a5568; }
+        
+        @media (max-width: 768px) { .container { flex-direction: column; } .grid-inputs { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
+    </style>
+</head>
+<body>
+
+    <h1>โปรแกรมคำนวณดัชนีร่างกายอัจฉริยะ</h1>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-title">📝 ข้อมูลร่างกายของคุณ</div>
+            
+            <label>เพศ</label>
+            <div class="gender-group">
+                <button class="gender-btn active-male" id="m-btn" onclick="setGender('male')">ชาย ♂</button>
+                <button class="gender-btn" id="f-btn" onclick="setGender('female')">หญิง ♀</button>
+            </div>
+            
+            <div class="grid-inputs">
+                <div class="input-group">
+                    <label>น้ำหนัก (kg)</label>
+                    <input type="number" id="weight" placeholder="เช่น 65">
+                </div>
+                <div class="input-group">
+                    <label>ส่วนสูง (cm)</label>
+                    <input type="number" id="height" placeholder="เช่น 170">
+                </div>
+                <div class="input-group">
+                    <label>อายุ (ปี)</label>
+                    <input type="number" id="age" placeholder="เช่น 25">
+                </div>
+                <div class="input-group">
+                    <label>รอบเอว (cm)</label>
+                    <input type="number" id="waist" placeholder="วัดผ่านสะดือ">
+                </div>
+                <div class="input-group">
+                    <label>รอบคอ (cm)</label>
+                    <input type="number" id="neck" placeholder="ส่วนที่กว้างที่สุด">
+                </div>
+                <div class="input-group female-only" id="hip-group">
+                    <label>รอบสะโพก (cm) *เฉพาะผู้หญิง</label>
+                    <input type="number" id="hip" placeholder="ส่วนที่กว้างที่สุด">
+                </div>
+                
+                <div class="input-group full-width">
+                    <label>ระดับกิจกรรมต่อสัปดาห์</label>
+                    <select id="activity">
+                        <option value="1.2">นั่งทำงานอยู่กับที่ ไม่ค่อยออกกำลังกาย</option>
+                        <option value="1.375">ออกกำลังกายเบาๆ (1-3 วัน/สัปดาห์)</option>
+                        <option value="1.55">ออกกำลังกายปานกลาง (3-5 วัน/สัปดาห์)</option>
+                        <option value="1.725">ออกกำลังกายหนัก (6-7 วัน/สัปดาห์)</option>
+                        <option value="1.9">ออกกำลังกายหนักมาก/นักกีฬา</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📊 ผลลัพธ์การวิเคราะห์ร่างกาย</div>
+            <div class="results-grid">
+                <div class="result-box highlight">
+                    <div class="res-label">BMI (ดัชนีมวลกาย)</div>
+                    <div class="res-val" id="res-bmi">-</div>
+                </div>
+                <div class="result-box highlight">
+                    <div class="res-label">สถานะร่างกาย</div>
+                    <div class="res-val" id="res-status" style="font-size: 18px;">-</div>
+                </div>
+                <div class="result-box">
+                    <div class="res-label">BMR (พลังงานพื้นฐาน)</div>
+                    <div class="res-val" id="res-bmr">- <span style="font-size:14px">kcal</span></div>
+                </div>
+                <div class="result-box">
+                    <div class="res-label">TDEE (พลังงานที่ใช้จริง)</div>
+                    <div class="res-val" id="res-tdee">- <span style="font-size:14px">kcal</span></div>
+                </div>
+                <div class="result-box">
+                    <div class="res-label">Body Fat (เปอร์เซ็นต์ไขมัน)</div>
+                    <div class="res-val" id="res-fatpct">-</div>
+                </div>
+                <div class="result-box">
+                    <div class="res-label">Fat Mass (มวลไขมัน)</div>
+                    <div class="res-val" id="res-fatmass">- <span style="font-size:14px">kg</span></div>
+                </div>
+                <div class="result-box">
+                    <div class="res-label">Lean Body Mass (มวลกล้ามเนื้อ/กระดูก)</div>
+                    <div class="res-val" id="res-lbm">- <span style="font-size:14px">kg</span></div>
+                </div>
+                <div class="result-box">
+                    <div class="res-label">Ideal Weight (น้ำหนักที่เหมาะสม)</div>
+                    <div class="res-val" id="res-ideal">- <span style="font-size:14px">kg</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-action">
+        <button class="btn btn-reset" onclick="resetAll()">ล้างข้อมูล</button>
+        <button class="btn btn-calc" onclick="calculateAll()">คำนวณผลลัพธ์</button>
+    </div>
+
+    <script>
+        let gender = 'male';
+
+        function setGender(g) {
+            gender = g;
+            document.getElementById('m-btn').className = g === 'male' ? 'gender-btn active-male' : 'gender-btn';
+            document.getElementById('f-btn').className = g === 'female' ? 'gender-btn active-female' : 'gender-btn';
+            document.getElementById('hip-group').style.display = g === 'female' ? 'block' : 'none';
+        }
+
+        function calculateAll() {
+            const w = parseFloat(document.getElementById('weight').value);
+            const h = parseFloat(document.getElementById('height').value);
+            const age = parseFloat(document.getElementById('age').value);
+            const waist = parseFloat(document.getElementById('waist').value);
+            const neck = parseFloat(document.getElementById('neck').value);
+            const hip = parseFloat(document.getElementById('hip').value);
+            const activity = parseFloat(document.getElementById('activity').value);
+
+            if (!w || !h || !age || !waist || !neck || (gender === 'female' && !hip)) {
+                alert("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วนครับ");
+                return;
+            }
+
+            const hMeters = h / 100;
+
+            // 1. BMI & Status
+            const bmi = w / (hMeters * hMeters);
+            document.getElementById('res-bmi').innerText = bmi.toFixed(1);
+            let status = "";
+            if (bmi < 18.5) status = "น้ำหนักน้อย / ผอม";
+            else if (bmi < 23) status = "สมส่วน / สุขภาพดี";
+            else if (bmi < 25) status = "น้ำหนักเกิน";
+            else status = "อ้วน";
+            document.getElementById('res-status').innerText = status;
+
+            // 2. BMR (สูตร Mifflin-St Jeor)
+            let bmr = 0;
+            if (gender === 'male') {
+                bmr = (10 * w) + (6.25 * h) - (5 * age) + 5;
+            } else {
+                bmr = (10 * w) + (6.25 * h) - (5 * age) - 161;
+            }
+            document.getElementById('res-bmr').innerHTML = `${Math.round(bmr)} <span style="font-size:14px">kcal</span>`;
+
+            // 3. TDEE
+            const tdee = bmr * activity;
+            document.getElementById('res-tdee').innerHTML = `${Math.round(tdee)} <span style="font-size:14px">kcal</span>`;
+
+            // 4. Body Fat % (สูตร US Navy วิธีการแปลง Log)
+            let bodyFat = 0;
+            if (gender === 'male') {
+                bodyFat = 86.010 * Math.log10(waist - neck) - 70.041 * Math.log10(h) + 36.76;
+            } else {
+                bodyFat = 163.205 * Math.log10(waist + hip - neck) - 97.684 * Math.log10(h) - 78.387;
+            }
+            
+            if(bodyFat < 2) bodyFat = 2; // ป้องกันค่าติดลบกรณีสัดส่วนผิดเพี้ยน
+            document.getElementById('res-fatpct').innerText = bodyFat.toFixed(1) + " %";
+
+            // 5. Fat Mass & Lean Body Mass
+            const fatMass = w * (bodyFat / 100);
+            const lbm = w - fatMass;
+            document.getElementById('res-fatmass').innerHTML = `${fatMass.toFixed(1)} <span style="font-size:14px">kg</span>`;
+            document.getElementById('res-lbm').innerHTML = `${lbm.toFixed(1)} <span style="font-size:14px">kg</span>`;
+
+            // 6. Ideal Body Weight (สูตร Devine Formula)
+            let idealWeight = 0;
+            const inchesOver5Feet = (h / 2.54) - 60;
+            if (inchesOver5Feet > 0) {
+                if (gender === 'male') {
+                    idealWeight = 50.0 + (2.3 * inchesOver5Feet);
+                } else {
+                    idealWeight = 45.5 + (2.3 * inchesOver5Feet);
+                }
+            } else {
+                // กรณีส่วนสูงไม่เกิน 5 ฟุต ใช้เกณฑ์ประเมินส่วนสูงลบด้วย 100 หรือ 110
+                idealWeight = gender === 'male' ? h - 100 : h - 110;
+            }
+            document.getElementById('res-ideal').innerHTML = `${idealWeight.toFixed(1)} <span style="font-size:14px">kg</span>`;
+        }
+
+        function resetAll() {
+            document.querySelectorAll('input').forEach(input => input.value = "");
+            document.getElementById('res-bmi').innerText = "-";
+            document.getElementById('res-status').innerText = "-";
+            document.getElementById('res-bmr').innerHTML = `- <span style="font-size:14px">kcal</span>`;
+            document.getElementById('res-tdee').innerHTML = `- <span style="font-size:14px">kcal</span>`;
+            document.getElementById('res-fatpct').innerText = "-";
+            document.getElementById('res-fatmass').innerHTML = `- <span style="font-size:14px">kg</span>`;
+            document.getElementById('res-lbm').innerHTML = `- <span style="font-size:14px">kg</span>`;
+            document.getElementById('res-ideal').innerHTML = `- <span style="font-size:14px">kg</span>`;
+            setGender('male');
+        }
+    </script>
+</body>
+</html>

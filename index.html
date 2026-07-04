@@ -165,7 +165,11 @@
             const hip = parseFloat(document.getElementById('hip').value);
             const activity = parseFloat(document.getElementById('activity').value);
 
-            if (!w || !h || !age || !waist || !neck || (gender === 'female' && !hip)) {
+            /*if (!w || !h || !age || !waist || !neck || (gender === 'female' && !hip)) {
+                alert("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วนครับ");
+                return;
+            }*/
+             if (!w || !h || !age || (gender === 'female' && !hip)) {
                 alert("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วนครับ");
                 return;
             }

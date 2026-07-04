@@ -225,7 +225,7 @@
                 document.getElementById('res-lbm').innerHTML = `${lbm.toFixed(1)} <span style="font-size:14px">kg</span>`;
             } else {
                 // ข้อมูลสัดส่วนไม่ครบ ให้ใส่เครื่องหมาย "-" ตามที่ต้องการ
-                document.getElementById('res-fatpct').innerText = "-";
+                document.getElementById('res-fatpct').innerHTML = `- <span style="font-size:14px">%</span>`; //innerText = "-";
                 document.getElementById('res-fatmass').innerHTML = `- <span style="font-size:14px">kg</span>`;
                 document.getElementById('res-lbm').innerHTML = `- <span style="font-size:14px">kg</span>`;
             }
@@ -251,7 +251,7 @@
             document.getElementById('res-status').innerText = "-";
             document.getElementById('res-bmr').innerHTML = `- <span style="font-size:14px">kcal</span>`;
             document.getElementById('res-tdee').innerHTML = `- <span style="font-size:14px">kcal</span>`;
-            document.getElementById('res-fatpct').innerText = "-";
+            document.getElementById('res-fatpct').innerHTML = `- <span style="font-size:14px">%</span>`;  //innerText = "-";
             document.getElementById('res-fatmass').innerHTML = `- <span style="font-size:14px">kg</span>`;
             document.getElementById('res-lbm').innerHTML = `- <span style="font-size:14px">kg</span>`;
             document.getElementById('res-ideal').innerHTML = `- <span style="font-size:14px">kg</span>`;
